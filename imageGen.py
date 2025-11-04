@@ -65,16 +65,14 @@ class ImageGenerator:
         currently_Executing_Prompt = None
         output_images = []
         async for out in self.ws:
-            try:
-                message = json.loads(out)
-                if message['type'] == 'execution_start':
-                    currently_Executing_Prompt = message['data']['prompt_id']
-                if message['type'] == 'executing' and prompt_id == currently_Executing_Prompt:
-                    data = message['data']
-                    if data['node'] is None and data['prompt_id'] == prompt_id:
-                        break
-            except ValueError as e:
-                print("Incompatible response from ComfyUI");
+            message = json.loads(out)
+            if message['type'] == 'execution_start':
+                currently_Executing_Prompt = message['data']['prompt_id']
+
+            if message['type'] == 'executing' and prompt_id == currently_Executing_Prompt:
+                data = message['data']
+                if data['node'] is None and data['prompt_id'] == prompt_id:
+                    break
                 
         history = get_history(prompt_id)[prompt_id]
 
@@ -107,10 +105,10 @@ async def generate_images(prompt: str,negative_prompt: str):
     # Modify the prompt dictionary
     if(prompt != None and prompt_nodes[0] != ''):
       for node in prompt_nodes:
-          workflow[node]["inputs"]["text"] = prompt
+          workflow[node]["inputs"]["value"] = prompt
     if(negative_prompt != None and neg_prompt_nodes[0] != ''):
       for node in neg_prompt_nodes:
-          workflow[node]["inputs"]["text"] = negative_prompt
+          workflow[node]["inputs"]["value"] = negative_prompt
     if(rand_seed_nodes[0] != ''):
       for node in rand_seed_nodes:
           workflow[node]["inputs"]["seed"] = random.randint(0,999999999999999)
