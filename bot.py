@@ -26,11 +26,6 @@ def generate_default_config():
     config['LOCAL'] = {
         'SERVER_ADDRESS': 'YOUR_COMFYUI_URL'
     }
-    config['API'] = {
-        'API_KEY': 'STABILITY_AI_API_KEY',
-        'API_HOST': 'https://api.stability.ai',
-        'API_IMAGE_ENGINE': 'STABILITY_AI_IMAGE_GEN_MODEL'
-    }
     with open('config.properties', 'w') as configfile:
         config.write(configfile)
 
@@ -63,8 +58,6 @@ tree = discord.app_commands.CommandTree(client)
 
 if IMAGE_SOURCE == "LOCAL":
     from imageGen import generate_images, upscale_image, generate_alternatives
-elif IMAGE_SOURCE == "API":
-    from apiImageGen import generate_images, upscale_image, generate_alternatives
 
 # sync the slash command to your server
 @client.event
@@ -150,6 +143,7 @@ async def slash_command(interaction: discord.Interaction, prompt: str, negative_
     # Construct the final message with user mention
     final_message = f"{interaction.user.mention} asked me to imagine \"{prompt}\", here is what I imagined for them."
     await interaction.channel.send(content=final_message, file=discord.File(fp=create_collage(images), filename='collage.png'), view=Buttons(prompt,negative_prompt,images))
+
 
 # run the bot
 client.run(TOKEN)
