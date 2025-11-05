@@ -101,12 +101,14 @@ async def generate_images(prompt: str,negative_prompt: str):
     generator = ImageGenerator()
     await generator.connect()
     # Get nodes from config
+    checkpoint_node  = config.get('TEXT2IMG', 'CHECKPOINT_NODE').split(',')
     prompt_nodes     = config.get('TEXT2IMG', 'PROMPT_NODES').split(',')
     neg_prompt_nodes = config.get('TEXT2IMG', 'NEG_PROMPT_NODES').split(',')
     rand_seed_nodes  = config.get('TEXT2IMG', 'RAND_SEED_NODES').split(',') 
     sampler_nodes    = config.get('TEXT2IMG', 'SAMPLER_NODES').split(',')
     lora_nodes       = config.get('TEXT2IMG', 'LORA_NODES').split(',')
     # Get params from config
+    ckpt_name        = config.get('CHECKPOINT', 'CHECKPOINT_NAME')
     pos_template     = config.get('PROMPT_TEMPLATE', 'POS')
     neg_template     = config.get('PROMPT_TEMPLATE', 'NEG')
     sampler          = config.get('BASE_SAMPLER_CFG', 'SAMPLER')
@@ -118,6 +120,10 @@ async def generate_images(prompt: str,negative_prompt: str):
     
     print('----- Generating Image -----')
     # Modify the prompt dictionary
+    if(checkpoint_node[0] != ''):
+      for node in checkpoint_node:
+          workflow[node]["inputs"]["ckpt_name"] = ckpt_name
+          print('Checkpoint: ' + workflow[node]["inputs"]["ckpt_name"])
     if(prompt != None and prompt_nodes[0] != ''):
       for node in prompt_nodes:
           workflow[node]["inputs"]["value"] = pos_template + prompt

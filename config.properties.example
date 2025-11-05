@@ -21,12 +21,16 @@ SCHEDULER=karras
 STEPS=18
 CFG=6
 
+[CHECKPOINT]
+CHECKPOINT_NAME=unholyDesireMixSinister_v60.safetensors
+
 [LORA]
-LORA_NAME=Blasphemous_Style.safetensors
+LORA_NAME=Blasphemous_Style_v1.1.safetensors
 STRENGTH=0.8
 
 [TEXT2IMG]
 CONFIG=comfyUI-workflows/text2img_config_string_con.json
+CHECKPOINT_NODE=4
 PROMPT_NODES=25
 NEG_PROMPT_NODES=28
 RAND_SEED_NODES=17
@@ -35,6 +39,7 @@ LORA_NODES=22
 
 [IMG2IMG]
 CONFIG=comfyUI-workflows/img2img_config.json
+CHECKPOINT_NODE=1
 PROMPT_NODES=2
 NEG_PROMPT_NODES=3
 RAND_SEED_NODES=4
@@ -44,6 +49,7 @@ LORA_NODES=10
 
 [UPSCALE]
 CONFIG=comfyUI-workflows/upscale_config.json
+CHECKPOINT_NODE=1
 PROMPT_NODES=2
 NEG_PROMPT_NODES=3
 RAND_SEED_NODES=4

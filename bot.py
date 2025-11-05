@@ -135,15 +135,12 @@ class Buttons(discord.ui.View):
 @app_commands.describe(negative_prompt='Prompt for what you want to steer the AI away from')
 async def slash_command(interaction: discord.Interaction, prompt: str, negative_prompt: str = None):
     # Send an initial message
-    await interaction.response.send_message(f"{interaction.user.mention} asked me to imagine \"{prompt}\", this shouldn't take too long...")
-
+    await interaction.response.send_message(f"{interaction.user.mention} Summoning image from another realm.")
     # Generate the image and get progress updates
     images = await generate_images(prompt,negative_prompt)
-
     # Construct the final message with user mention
-    final_message = f"{interaction.user.mention} asked me to imagine \"{prompt}\", here is what I imagined for them."
+    final_message = f"{interaction.user.mention} Summoned image."
     await interaction.channel.send(content=final_message, file=discord.File(fp=create_collage(images), filename='collage.png'), view=Buttons(prompt,negative_prompt,images))
-
 
 # run the bot
 client.run(TOKEN)
