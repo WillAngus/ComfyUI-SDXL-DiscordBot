@@ -4,3 +4,7 @@ out/
 __pycache__/
 config.properties
 *.spec
+ComfyUi_windows_portable/
+bot.exe
+start.bat
+tokens.txt
