@@ -91,7 +91,7 @@
     },
     "22": {
       "inputs": {
-        "lora_name": "Blasphemous_Style.safetensors",
+        "lora_name": "",
         "strength_model": 0.8,
         "strength_clip": 1,
         "model": [

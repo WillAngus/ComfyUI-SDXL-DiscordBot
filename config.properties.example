@@ -6,7 +6,7 @@ SDXL_SOURCE=LOCAL
 SERVER_ADDRESS=127.0.0.1:8188
 
 [PROMPT_TEMPLATE]
-POS=embedding:lazypos, blasphemous, unholy-aesthetic, masterpiece, best quality, amazing quality, very aesthetic, absurdres, ultra detailed face, ultra detailed eyes, 
+POS=embedding:lazypos, masterpiece, best quality, amazing quality, very aesthetic, absurdres, ultra detailed face, ultra detailed eyes, 
 NEG=embedding:lazyneg, embedding:lazyhand, bad quality, worst quality, worst detail, sketch, censor, 
 
 [BASE_SAMPLER_CFG]
@@ -22,11 +22,11 @@ STEPS=18
 CFG=6
 
 [CHECKPOINT]
-CHECKPOINT_NAME=unholyDesireMixSinister_v60.safetensors
+CHECKPOINT_NAME=
 
 [LORA]
-LORA_NAME=Blasphemous_Style_v1.1.safetensors
-STRENGTH=0.8
+LORA_NAME=
+STRENGTH=
 
 [TEXT2IMG]
 CONFIG=comfyUI-workflows/text2img_config_string_con.json

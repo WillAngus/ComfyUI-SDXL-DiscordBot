@@ -173,6 +173,7 @@ async def generate_alternatives(image: Image.Image, prompt: str, negative_prompt
     generator = ImageGenerator()
     await generator.connect()
     # Get nodes from config
+    checkpoint_node  = config.get('IMG2IMG', 'CHECKPOINT_NODE').split(',')
     prompt_nodes     = config.get('IMG2IMG', 'PROMPT_NODES').split(',')
     neg_prompt_nodes = config.get('IMG2IMG', 'NEG_PROMPT_NODES').split(',')
     rand_seed_nodes  = config.get('IMG2IMG', 'RAND_SEED_NODES').split(',') 
@@ -180,6 +181,7 @@ async def generate_alternatives(image: Image.Image, prompt: str, negative_prompt
     sampler_nodes    = config.get('IMG2IMG', 'SAMPLER_NODES').split(',')
     lora_nodes       = config.get('IMG2IMG', 'LORA_NODES').split(',')
     # Get params from config
+    ckpt_name        = config.get('CHECKPOINT', 'CHECKPOINT_NAME')
     pos_template     = config.get('PROMPT_TEMPLATE', 'POS')
     neg_template     = config.get('PROMPT_TEMPLATE', 'NEG')
     sampler          = config.get('BASE_SAMPLER_CFG', 'SAMPLER')
@@ -190,6 +192,10 @@ async def generate_alternatives(image: Image.Image, prompt: str, negative_prompt
     lora_strength    = config.get('LORA', 'STRENGTH')
     
     print('----- Refining Image -----')
+    if(checkpoint_node[0] != ''):
+      for node in checkpoint_node:
+          workflow[node]["inputs"]["ckpt_name"] = ckpt_name
+          print('Checkpoint: ' + workflow[node]["inputs"]["ckpt_name"])
     if(prompt != None and prompt_nodes[0] != ''):
       for node in prompt_nodes:
           workflow[node]["inputs"]["value"] = pos_template + prompt
@@ -242,6 +248,7 @@ async def upscale_image(image: Image.Image, prompt: str,negative_prompt: str):
     generator = ImageGenerator()
     await generator.connect()
     # Get nodes from config
+    checkpoint_node  = config.get('UPSCALE', 'CHECKPOINT_NODE').split(',')
     prompt_nodes     = config.get('UPSCALE', 'PROMPT_NODES').split(',')
     neg_prompt_nodes = config.get('UPSCALE', 'NEG_PROMPT_NODES').split(',')
     rand_seed_nodes  = config.get('UPSCALE', 'RAND_SEED_NODES').split(',') 
@@ -249,6 +256,7 @@ async def upscale_image(image: Image.Image, prompt: str,negative_prompt: str):
     sampler_nodes    = config.get('UPSCALE', 'SAMPLER_NODES').split(',')
     lora_nodes       = config.get('UPSCALE', 'LORA_NODES').split(',')
     # Get params from config
+    ckpt_name        = config.get('CHECKPOINT', 'CHECKPOINT_NAME')
     pos_template     = config.get('PROMPT_TEMPLATE', 'POS')
     neg_template     = config.get('PROMPT_TEMPLATE', 'NEG')
     sampler          = config.get('REF_SAMPLER_CFG', 'SAMPLER')
@@ -260,6 +268,10 @@ async def upscale_image(image: Image.Image, prompt: str,negative_prompt: str):
 
     print('----- Upscaling Image -----')
     # Modify the prompt dictionary
+    if(checkpoint_node[0] != ''):
+      for node in checkpoint_node:
+          workflow[node]["inputs"]["ckpt_name"] = ckpt_name
+          print('Checkpoint: ' + workflow[node]["inputs"]["ckpt_name"])
     if(prompt != None and prompt_nodes[0] != ''):
       for node in prompt_nodes:
           workflow[node]["inputs"]["value"] = pos_template + prompt
