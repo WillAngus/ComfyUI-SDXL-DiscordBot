@@ -31,7 +31,7 @@
 - Extract the zip file to your desired location.
 
 ### 2. **Configuration**
-- Open `config.properties` using a text editor. If cloned from github, rename and `config.properties.example`.
+- Open `config.properties` using a text editor. If cloned from github, rename `config.properties.example`.
 - Set your Discord bot token: Find `[BOT][TOKEN]` and replace the placeholder with your token.
 - Enter the file name of your checkpoint and lora.
 - Config can be edited while bot is running.
