@@ -20,7 +20,7 @@
 
 2. **Variations on Outputs**: Not satisfied with the first image? The bot can produce multiple variations by resampling your image.
 
-3. **Upscale Outputs**: Apply hires. fix to your images to increase the resolution as well as detail. Perfect for when you need higher resolution visuals.
+3. **Upscale Outputs**: Apply hires. fix to your images to increase the resolution as well as adding detail. Perfect for when you need higher resolution visuals.
 
 4. **Custom Workflows with ComfyUI**: The bot comes with default configurations that cater to most users. However, if you have specific needs, it supports custom ComfyUI workflows, allowing you to tailor the bot's operations to your exact requirements.
 
