@@ -10,10 +10,10 @@ import configparser
 import os
 import tempfile
 import requests
+from configEdit import get_config
 
 # Read the configuration
-config = configparser.ConfigParser()
-config.read('config.properties')
+config = get_config()
 server_address  = config['LOCAL']['SERVER_ADDRESS']
 text2img_config = config['TEXT2IMG']['CONFIG']
 img2img_config  = config['IMG2IMG']['CONFIG']

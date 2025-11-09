@@ -3,52 +3,11 @@ import discord.ext
 from discord import app_commands
 import configparser
 import os
+import sys
 from PIL import Image
 from datetime import datetime
 from math import ceil, sqrt
-
-def setup_config():
-    if not os.path.exists('config.properties'):
-        generate_default_config()
-
-    if not os.path.exists('./out'):
-        os.makedirs('./out')
-
-    config = configparser.ConfigParser()
-    config.read('config.properties')
-    return config['BOT']['TOKEN'], config['BOT']['SDXL_SOURCE']
-
-def generate_default_config():
-    config = configparser.ConfigParser()
-    config['DISCORD'] = {
-        'TOKEN': 'YOUR_DEFAULT_DISCORD_BOT_TOKEN'
-    }
-    config['LOCAL'] = {
-        'SERVER_ADDRESS': 'YOUR_COMFYUI_URL'
-    }
-    with open('config.properties', 'w') as configfile:
-        config.write(configfile)
-
-def create_collage(images):
-    num_images = len(images)
-    num_cols = ceil(sqrt(num_images))
-    num_rows = ceil(num_images / num_cols)
-    collage_width = max(image.width for image in images) * num_cols
-    collage_height = max(image.height for image in images) * num_rows
-    collage = Image.new('RGB', (collage_width, collage_height))
-
-    for idx, image in enumerate(images):
-        row = idx // num_cols
-        col = idx % num_cols
-        x_offset = col * image.width
-        y_offset = row * image.height
-        collage.paste(image, (x_offset, y_offset))
-
-    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-    collage_path = f"./out/images_{timestamp}.png"
-    collage.save(collage_path)
-
-    return collage_path
+from configEdit import setup_config, get_config, replace_all, change_checkpoint_cfg, change_lora_cfg, get_models
 
 # setting up the bot
 TOKEN, IMAGE_SOURCE = setup_config()
@@ -58,6 +17,26 @@ tree = discord.app_commands.CommandTree(client)
 
 if IMAGE_SOURCE == "LOCAL":
     from imageGen import generate_images, upscale_image, generate_alternatives
+
+global CHECKPOINTS
+global LORAS
+CHECKPOINTS = get_models('checkpoints')
+LORAS = get_models('loras')
+
+def get_choices(type):
+    arr = []
+    if type == 'checkpoints':
+        for x in CHECKPOINTS:
+            arr.append(app_commands.Choice(name=x,value=x))
+    if type == 'loras':
+        for y in LORAS:
+            arr.append(app_commands.Choice(name=y,value=y))
+    return arr
+
+global checkpoint_choices
+global lora_choices
+checkpoint_choices = get_choices('checkpoints')
+lora_choices = get_choices('loras')
 
 # sync the slash command to your server
 @client.event
@@ -130,10 +109,31 @@ class Buttons(discord.ui.View):
         final_message = f"{interaction.user.mention} asked me to re-imagine \"{self.prompt}\", here is what I imagined for them."
         await interaction.channel.send(content=final_message, file=discord.File(fp=create_collage(images), filename='collage.png'), view = Buttons(self.prompt,self.negative_prompt,images))
 
+def create_collage(images):
+    num_images = len(images)
+    num_cols = ceil(sqrt(num_images))
+    num_rows = ceil(num_images / num_cols)
+    collage_width = max(image.width for image in images) * num_cols
+    collage_height = max(image.height for image in images) * num_rows
+    collage = Image.new('RGB', (collage_width, collage_height))
+
+    for idx, image in enumerate(images):
+        row = idx // num_cols
+        col = idx % num_cols
+        x_offset = col * image.width
+        y_offset = row * image.height
+        collage.paste(image, (x_offset, y_offset))
+
+    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+    collage_path = f"./out/images_{timestamp}.png"
+    collage.save(collage_path)
+
+    return collage_path
+
 @tree.command(name="imagine", description="Generate an image based on input text")
 @app_commands.describe(prompt='Prompt for the image being generated')
 @app_commands.describe(negative_prompt='Prompt for what you want to steer the AI away from')
-async def slash_command(interaction: discord.Interaction, prompt: str, negative_prompt: str = None):
+async def imagine(interaction: discord.Interaction, prompt: str, negative_prompt: str = None):
     # Send an initial message
     await interaction.response.send_message(f"{interaction.user.mention} Summoning image from another realm.")
     # Generate the image and get progress updates
@@ -141,6 +141,27 @@ async def slash_command(interaction: discord.Interaction, prompt: str, negative_
     # Construct the final message with user mention
     final_message = f"{interaction.user.mention} Summoned image."
     await interaction.channel.send(content=final_message, file=discord.File(fp=create_collage(images), filename='collage.png'), view=Buttons(prompt,negative_prompt,images))
+
+@tree.command(name="checkpoint", description="Change the selected checkpoint for image generation")
+@app_commands.choices(options = checkpoint_choices)
+async def choices(interaction:discord.Interaction,options:app_commands.Choice[str]):
+    print(options.value)
+    change_checkpoint_cfg(options.value)
+    await interaction.response.send_message(f"{interaction.user.mention} Checkpoint changed to: `{options.value}`")
+
+@tree.command(name="lora", description="Change the selected lora for image generation")
+@app_commands.choices(options = lora_choices)
+async def choices(interaction:discord.Interaction,options:app_commands.Choice[str]):
+    print(options.value)
+    change_lora_cfg(options.value)
+    await interaction.response.send_message(f"{interaction.user.mention} Lora changed to: `{options.value}`")
+
+@tree.command(name="restart", description="Restarts the bot")
+async def restart(interaction:discord.Interaction): 
+    embed=discord.Embed(title=":white_check_mark:",description="Successfully Restarted") 
+    await interaction.channel.send(embed=embed) 
+    os.system("clear") 
+    os.execv(sys.executable, ['python'] + sys.argv)
 
 # run the bot
 client.run(TOKEN)
