@@ -40,9 +40,9 @@
 - Enter your ComfyUI directory eg. `COMFY_DIR=C:\Users\YOUR_USERNAME\Documents\ComfyUI`
 - Download and add models to ComfyUI, eg:
   - [Illustrious-XL](https://civitai.com/models/795765?modelVersionId=889818) → `checkpoints` folder
-  - [4x_foolhardy_Remacri](https://civitai.com/models/147759?modelVersionId=164821) → `upscale_models` folder
   - [Stabilizer IL/NAI](https://civitai.com/models/971952?modelVersionId=2334017)→ `loras` folder
   - [SDXL-VAE-FP16-Fix](https://huggingface.co/madebyollin/sdxl-vae-fp16-fix)→ `vae` folder
+  - [4x_foolhardy_Remacri](https://civitai.com/models/147759?modelVersionId=164821) → `upscale_models` folder
 - Ensure that ComfyUI is running while the bot is running
 
 ### 4. **Run the App**
