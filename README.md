@@ -33,12 +33,12 @@
 ### 2. **Configuration**
 - Open `config.properties` using a text editor. If cloned from github, rename `config.properties.example`.
 - Set your Discord bot token: Find `[BOT][TOKEN]` and replace the placeholder with your token.
-- Enter the file name of your checkpoint and lora.
-- Config can be edited while bot is running.
+- Enter the filename of your checkpoint, lora and VAE. (This step can be done in the discord client with slash commands).
 
 ### 3. **Run locally via ComfyUI**
 - Set your ComfyUI URL: Replace the placeholder in `[LOCAL][SERVER_ADDRESS]` with your ComfyUI URL (default is `127.0.0.1:8188`).
 - Update the source: Change `[BOT][SDXL_SOURCE]` to 'LOCAL'.
+- Enter your ComfyUI directory eg. `COMFY_DIR=C:\Users\YOUR_USERNAME\Documents\ComfyUI`
 - Download and add models to ComfyUI, eg:
   - [Illustrious-XL](https://civitai.com/models/795765?modelVersionId=889818) → `checkpoints` folder
   - [4x_foolhardy_Remacri](https://civitai.com/models/147759?modelVersionId=164821) → `upscale_models` folder
