@@ -30,9 +30,9 @@
         "seed": 1007246773846082,
         "steps": 18,
         "cfg": 6,
-        "sampler_name": "euler_ancestral",
+        "sampler_name": "dpmpp_2m_sde",
         "scheduler": "karras",
-        "denoise": 0.6,
+        "denoise": 0.5,
         "model": [
           "10",
           0

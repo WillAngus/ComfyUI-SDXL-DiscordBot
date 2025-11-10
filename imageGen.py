@@ -91,7 +91,7 @@ class ImageGenerator:
         if self.ws:
             await self.ws.close()
 
-async def generate_images(prompt: str,negative_prompt: str):
+async def generate_images(prompt: str, negative_prompt: str, seed: int):
     # Read config
     config.read('config.properties')
     # Open comfy workflow
@@ -130,18 +130,22 @@ async def generate_images(prompt: str,negative_prompt: str):
           print('Checkpoint: ' + workflow[node]["inputs"]["ckpt_name"])
     if(prompt != None and prompt_nodes[0] != ''):
       for node in prompt_nodes:
-          workflow[node]["inputs"]["value"] = pos_template + prompt
-          print('Positive prompt: ' + workflow[node]["inputs"]["value"])
+          workflow[node]["inputs"]["text"] = pos_template + prompt
+          print('Positive prompt: ' + workflow[node]["inputs"]["text"])
     if(neg_prompt_nodes[0] != ''):
       for node in neg_prompt_nodes:
           if (negative_prompt == None):
-                workflow[node]["inputs"]["value"] = neg_template
+                workflow[node]["inputs"]["text"] = neg_template
           else:
-                workflow[node]["inputs"]["value"] = neg_template + negative_prompt
-          print('Negative prompt: ' + workflow[node]["inputs"]["value"])
+                workflow[node]["inputs"]["text"] = neg_template + negative_prompt
+          print('Negative prompt: ' + workflow[node]["inputs"]["text"])
     if(rand_seed_nodes[0] != ''):
       for node in rand_seed_nodes:
-          workflow[node]["inputs"]["seed"] = random.randint(0,999999999999999)
+          if(seed != None):
+            workflow[node]["inputs"]["seed"] = seed
+          else:
+            workflow[node]["inputs"]["seed"] = random.randint(0,999999999999999)
+          print('Seed: ' + str(workflow[node]["inputs"]["seed"]))
     if(sampler_nodes[0] != ''):
       for node in sampler_nodes:
           workflow[node]["inputs"]["sampler_name"] = sampler
@@ -167,7 +171,7 @@ async def generate_images(prompt: str,negative_prompt: str):
 
     return images
 
-async def generate_alternatives(image: Image.Image, prompt: str, negative_prompt: str):
+async def generate_alternatives(image: Image.Image, prompt: str, negative_prompt: str, seed: int):
     # Read config
     config.read('config.properties')
     # Save temp png
@@ -211,18 +215,22 @@ async def generate_alternatives(image: Image.Image, prompt: str, negative_prompt
           print('Checkpoint: ' + workflow[node]["inputs"]["ckpt_name"])
     if(prompt != None and prompt_nodes[0] != ''):
       for node in prompt_nodes:
-          workflow[node]["inputs"]["value"] = pos_template + prompt
-          print('Positive prompt: ' + workflow[node]["inputs"]["value"])
+          workflow[node]["inputs"]["text"] = pos_template + prompt
+          print('Positive prompt: ' + workflow[node]["inputs"]["text"])
     if(neg_prompt_nodes[0] != ''):
       for node in neg_prompt_nodes:
           if (negative_prompt == None):
-                workflow[node]["inputs"]["value"] = neg_template
+                workflow[node]["inputs"]["text"] = neg_template
           else:
-                workflow[node]["inputs"]["value"] = neg_template + negative_prompt
-          print('Negative prompt: ' + workflow[node]["inputs"]["value"])
+                workflow[node]["inputs"]["text"] = neg_template + negative_prompt
+          print('Negative prompt: ' + workflow[node]["inputs"]["text"])
     if(rand_seed_nodes[0] != ''):
       for node in rand_seed_nodes:
-          workflow[node]["inputs"]["seed"] = random.randint(0,999999999999999)
+          if(seed != None):
+            workflow[node]["inputs"]["seed"] = seed
+          else:
+            workflow[node]["inputs"]["seed"] = random.randint(0,999999999999999)
+          print('Seed: ' + str(workflow[node]["inputs"]["seed"]))
     if(file_input_nodes[0] != ''):
       for node in file_input_nodes:
           workflow[node]["inputs"]["image"] = filename
@@ -247,13 +255,16 @@ async def generate_alternatives(image: Image.Image, prompt: str, negative_prompt
 
     return images
 
-async def upscale_image(image: Image.Image, prompt: str,negative_prompt: str):
+async def upscale_image(image: Image.Image, prompt: str, negative_prompt: str, seed: int):
     # Read config
     config.read('config.properties')
     # Create temp png
     with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
       image.save(temp_file, format="PNG")
       temp_filepath = temp_file.name
+
+    print(prompt)
+    print(negative_prompt)
 
     # Upload the temporary file using the upload_image method
     response_data = upload_image(temp_filepath)
@@ -291,18 +302,22 @@ async def upscale_image(image: Image.Image, prompt: str,negative_prompt: str):
           print('Checkpoint: ' + workflow[node]["inputs"]["ckpt_name"])
     if(prompt != None and prompt_nodes[0] != ''):
       for node in prompt_nodes:
-          workflow[node]["inputs"]["value"] = pos_template + prompt
-          print('Positive prompt: ' + workflow[node]["inputs"]["value"])
+          workflow[node]["inputs"]["text"] = pos_template + prompt
+          print('Positive prompt: ' + workflow[node]["inputs"]["text"])
     if(neg_prompt_nodes[0] != ''):
       for node in neg_prompt_nodes:
           if (negative_prompt == None):
-                workflow[node]["inputs"]["value"] = neg_template
+                workflow[node]["inputs"]["text"] = neg_template
           else:
-                workflow[node]["inputs"]["value"] = neg_template + negative_prompt
-          print('Negative prompt: ' + workflow[node]["inputs"]["value"])
+                workflow[node]["inputs"]["text"] = neg_template + negative_prompt
+          print('Negative prompt: ' + workflow[node]["inputs"]["text"])
     if(rand_seed_nodes[0] != ''):
       for node in rand_seed_nodes:
-          workflow[node]["inputs"]["seed"] = random.randint(0,999999999999999)
+          if(seed != None):
+            workflow[node]["inputs"]["seed"] = seed
+          else:
+            workflow[node]["inputs"]["seed"] = random.randint(0,999999999999999)
+          print('Seed: ' + str(workflow[node]["inputs"]["seed"]))
     if(file_input_nodes[0] != ''):
       for node in file_input_nodes:
           workflow[node]["inputs"]["image"] = filename

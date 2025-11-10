@@ -33,7 +33,7 @@ STRENGTH=0.8
 VAE_NAME=YOUR_VAE_NAME_HERE.safetensors
 
 [TEXT2IMG]
-CONFIG=comfyUI-workflows/text2img_config_string_con.json
+CONFIG=comfyUI-workflows/text2img_config.json
 CHECKPOINT_NODE=4
 PROMPT_NODES=25
 NEG_PROMPT_NODES=28

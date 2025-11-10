@@ -35,13 +35,9 @@ def set_size(width, height):
     replace_all('config.properties', 'WIDTH='+str(current_width), 'WIDTH='+str(width))
     replace_all('config.properties', 'HEIGHT='+str(current_height), 'HEIGHT='+str(height))
 
-def set_checkpoint(checkpoint_name):
-    current_ckpt_name = read_config().get('CHECKPOINT', 'CHECKPOINT_NAME')
-    replace_all('config.properties', 'CHECKPOINT_NAME='+current_ckpt_name, 'CHECKPOINT_NAME='+checkpoint_name)
-
-def set_lora(lora_name):
-    current_lora_name = read_config().get('LORA', 'LORA_NAME')
-    replace_all('config.properties', 'LORA_NAME='+current_lora_name, 'LORA_NAME='+lora_name)
+def set_value(header: str, key: str, value: str):
+    current_value = read_config().get(header, key)
+    replace_all('config.properties', key+'='+current_value, key+'='+value)
 
 def get_models(type):
     arr = []

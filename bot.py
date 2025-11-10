@@ -4,10 +4,11 @@ from discord import app_commands
 import configparser
 import os
 import sys
+import random
 from PIL import Image
 from datetime import datetime
 from math import ceil, sqrt
-from configEdit import setup_config, set_size, set_checkpoint, set_lora, get_models
+from configEdit import setup_config, set_size, get_models, set_value
 
 # setting up the bot
 TOKEN, IMAGE_SOURCE = setup_config()
@@ -54,11 +55,12 @@ class ImageButton(discord.ui.Button):
 
 
 class Buttons(discord.ui.View):
-    def __init__(self, prompt, negative_prompt, images, *, timeout=180):
+    def __init__(self, prompt, negative_prompt, seed, images, *, timeout=180):
         super().__init__(timeout=timeout)
         self.prompt = prompt
         self.negative_prompt = negative_prompt
         self.images = images
+        self.seed = seed
 
         total_buttons = len(images) * 2 + 1  # For both alternative and upscale buttons + re-roll button
         if total_buttons > 25:  # Limit to 25 buttons
@@ -82,15 +84,15 @@ class Buttons(discord.ui.View):
     async def generate_alternatives_and_send(self, interaction, button):
         index = int(button.label[1:]) - 1  # Extract index from label
         await interaction.response.send_message("Creating some alternatives, this shouldn't take too long...")
-        images = await generate_alternatives(self.images[index], self.prompt, self.negative_prompt)
+        images = await generate_alternatives(self.images[index], self.prompt, self.negative_prompt, self.seed)
         collage_path = create_collage(images)
         final_message = f"{interaction.user.mention} here are your alternative images"
-        await interaction.channel.send(content=final_message, file=discord.File(fp=collage_path, filename='collage.png'), view=Buttons(self.prompt, self.negative_prompt, images))
+        await interaction.channel.send(content=final_message, file=discord.File(fp=collage_path, filename='collage.png'), view=Buttons(self.prompt, self.negative_prompt, self.seed, images))
 
     async def upscale_and_send(self, interaction, button):
         index = int(button.label[1:]) - 1  # Extract index from label
         await interaction.response.send_message("Upscaling the image, this shouldn't take too long...")
-        upscaled_image = await upscale_image(self.images[index], self.prompt, self.negative_prompt)
+        upscaled_image = await upscale_image(self.images[index], self.prompt, self.negative_prompt, self.seed)
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
         upscaled_image_path = f"./out/upscaledImage_{timestamp}.png"
         upscaled_image.save(upscaled_image_path)
@@ -102,12 +104,13 @@ class Buttons(discord.ui.View):
         await interaction.response.send_message(f"{interaction.user.mention} asked me to re-imagine \"{self.prompt}\", this shouldn't take too long...")
         btn.disabled = True
         await interaction.message.edit(view=self)
+        seed = random.randint(0,999999999999999)
         # Generate a new image with the same prompt
-        images = await generate_images(self.prompt,self.negative_prompt)
+        images = await generate_images(self.prompt,self.negative_prompt, seed)
 
         # Construct the final message with user mention
         final_message = f"{interaction.user.mention} asked me to re-imagine \"{self.prompt}\", here is what I imagined for them."
-        await interaction.channel.send(content=final_message, file=discord.File(fp=create_collage(images), filename='collage.png'), view = Buttons(self.prompt,self.negative_prompt,images))
+        await interaction.channel.send(content=final_message, file=discord.File(fp=create_collage(images), filename='collage.png'), view = Buttons(self.prompt,self. negative_prompt, seed, images))
 
 def create_collage(images):
     num_images = len(images)
@@ -133,14 +136,15 @@ def create_collage(images):
 @tree.command(name="imagine", description="Generate an image based on input text")
 @app_commands.describe(prompt='Prompt for the image being generated')
 @app_commands.describe(negative_prompt='Prompt for what you want to steer the AI away from')
-async def imagine(interaction: discord.Interaction, prompt: str, negative_prompt: str = None):
+@app_commands.describe(seed='The seed used to generate the image')
+async def imagine(interaction: discord.Interaction, prompt: str, negative_prompt: str = None, seed: int = None):
     # Send an initial message
     await interaction.response.send_message(f"{interaction.user.mention} Summoning image from another realm.")
     # Generate the image and get progress updates
-    images = await generate_images(prompt,negative_prompt)
+    images = await generate_images(prompt, negative_prompt, seed)
     # Construct the final message with user mention
     final_message = f"{interaction.user.mention} Summoned image."
-    await interaction.channel.send(content=final_message, file=discord.File(fp=create_collage(images), filename='collage.png'), view=Buttons(prompt,negative_prompt,images))
+    await interaction.channel.send(content=final_message, file=discord.File(fp=create_collage(images), filename='collage.png'), view=Buttons(prompt,negative_prompt,seed,images))
 
 @tree.command(name="size", description="Change the image width")
 async def size(interaction: discord.Interaction, width: int, height: int):
@@ -150,15 +154,16 @@ async def size(interaction: discord.Interaction, width: int, height: int):
 @tree.command(name="checkpoint", description="Change the selected checkpoint for image generation")
 @app_commands.choices(options = checkpoint_choices)
 async def choices(interaction:discord.Interaction,options:app_commands.Choice[str]):
-    set_checkpoint(options.value)
+    set_value('CHECKPOINT', 'CHECKPOINT_NAME', options.value)
     await interaction.response.send_message(f"{interaction.user.mention} Checkpoint changed to: `{options.value}`")
 
 @tree.command(name="lora", description="Change the selected lora for image generation")
 @app_commands.choices(options = lora_choices)
-async def choices(interaction:discord.Interaction,options:app_commands.Choice[str]):
-    print(options.value)
-    set_lora(options.value)
-    await interaction.response.send_message(f"{interaction.user.mention} Lora changed to: `{options.value}`")
+@app_commands.describe(strength='The strength of the lora')
+async def choices(interaction:discord.Interaction,options:app_commands.Choice[str], strength: float):
+    set_value('LORA', 'LORA_NAME', options.value)
+    set_value('LORA', 'STRENGTH', str(strength))
+    await interaction.response.send_message(f"{interaction.user.mention} Lora changed to: `{options.value}` at `{strength}`")
 
 # run the bot
 client.run(TOKEN)

@@ -30,9 +30,9 @@
         "seed": 1007246773846082,
         "steps": 18,
         "cfg": 6.5,
-        "sampler_name": "dpmpp_2m_sde",
+        "sampler_name": "dpmpp_2m_sde_gpu",
         "scheduler": "karras",
-        "denoise": 0.5,
+        "denoise": 0.7,
         "model": [
           "11",
           0
