@@ -97,7 +97,7 @@
     },
     "9": {
       "inputs": {
-        "vae_name": "sdxl.vae.safetensors"
+        "vae_name": ""
       },
       "class_type": "VAELoader"
     },
@@ -114,7 +114,7 @@
     },
     "11": {
       "inputs": {
-        "lora_name": "Blasphemous_Style.safetensors",
+        "lora_name": "",
         "strength_model": 0.8,
         "strength_clip": 1,
         "model": [

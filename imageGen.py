@@ -10,10 +10,10 @@ import configparser
 import os
 import tempfile
 import requests
-from configEdit import get_config
 
 # Read the configuration
-config = get_config()
+config = configparser.ConfigParser()
+config.read('config.properties')
 server_address  = config['LOCAL']['SERVER_ADDRESS']
 text2img_config = config['TEXT2IMG']['CONFIG']
 img2img_config  = config['IMG2IMG']['CONFIG']
@@ -107,6 +107,10 @@ async def generate_images(prompt: str,negative_prompt: str):
     rand_seed_nodes  = config.get('TEXT2IMG', 'RAND_SEED_NODES').split(',') 
     sampler_nodes    = config.get('TEXT2IMG', 'SAMPLER_NODES').split(',')
     lora_nodes       = config.get('TEXT2IMG', 'LORA_NODES').split(',')
+    vae_nodes        = config.get('TEXT2IMG', 'VAE_NODES').split(',')
+    latent_node      = config.get('TEXT2IMG', 'LATENT_NODE').split(',')
+    width            = config.get('TEXT2IMG', 'WIDTH') 
+    height           = config.get('TEXT2IMG', 'HEIGHT') 
     # Get params from config
     ckpt_name        = config.get('CHECKPOINT', 'CHECKPOINT_NAME')
     pos_template     = config.get('PROMPT_TEMPLATE', 'POS')
@@ -117,6 +121,7 @@ async def generate_images(prompt: str,negative_prompt: str):
     cfg              = config.get('BASE_SAMPLER_CFG', 'CFG')
     lora_name        = config.get('LORA', 'LORA_NAME')
     lora_strength    = config.get('LORA', 'STRENGTH')
+    vae_name         = config.get('VAE', 'VAE_NAME')
     
     print('----- Generating Image -----')
     # Modify the prompt dictionary
@@ -150,6 +155,13 @@ async def generate_images(prompt: str,negative_prompt: str):
           workflow[node]["inputs"]["strength_model"] = lora_strength
           print('Lora: ' + workflow[node]["inputs"]["lora_name"])
           print('Lora strength: ' + workflow[node]["inputs"]["strength_model"])
+    if(vae_nodes[0] != ''):
+      for node in vae_nodes:
+          workflow[node]["inputs"]["vae_name"] = vae_name
+    if(latent_node[0] != ''):
+      for node in latent_node:
+          workflow[node]["inputs"]["width"] = width
+          workflow[node]["inputs"]["height"] = height
 
     images = await generator.get_images(workflow)
     await generator.close()
@@ -180,6 +192,7 @@ async def generate_alternatives(image: Image.Image, prompt: str, negative_prompt
     file_input_nodes = config.get('IMG2IMG', 'FILE_INPUT_NODES').split(',')
     sampler_nodes    = config.get('IMG2IMG', 'SAMPLER_NODES').split(',')
     lora_nodes       = config.get('IMG2IMG', 'LORA_NODES').split(',')
+    vae_nodes        = config.get('IMG2IMG', 'VAE_NODES').split(',')
     # Get params from config
     ckpt_name        = config.get('CHECKPOINT', 'CHECKPOINT_NAME')
     pos_template     = config.get('PROMPT_TEMPLATE', 'POS')
@@ -190,6 +203,7 @@ async def generate_alternatives(image: Image.Image, prompt: str, negative_prompt
     cfg              = config.get('BASE_SAMPLER_CFG', 'CFG')
     lora_name        = config.get('LORA', 'LORA_NAME')
     lora_strength    = config.get('LORA', 'STRENGTH')
+    vae_name         = config.get('VAE', 'VAE_NAME')
     
     print('----- Refining Image -----')
     if(checkpoint_node[0] != ''):
@@ -225,6 +239,9 @@ async def generate_alternatives(image: Image.Image, prompt: str, negative_prompt
           workflow[node]["inputs"]["strength_model"] = lora_strength
           print('Lora: ' + workflow[node]["inputs"]["lora_name"])
           print('Lora strength: ' + workflow[node]["inputs"]["strength_model"])
+    if(vae_nodes[0] != ''):
+      for node in vae_nodes:
+          workflow[node]["inputs"]["vae_name"] = vae_name
 
     images = await generator.get_images(workflow)
     await generator.close()
@@ -255,6 +272,7 @@ async def upscale_image(image: Image.Image, prompt: str,negative_prompt: str):
     file_input_nodes = config.get('UPSCALE', 'FILE_INPUT_NODES').split(',') 
     sampler_nodes    = config.get('UPSCALE', 'SAMPLER_NODES').split(',')
     lora_nodes       = config.get('UPSCALE', 'LORA_NODES').split(',')
+    vae_nodes        = config.get('UPSCALE', 'VAE_NODES').split(',')
     # Get params from config
     ckpt_name        = config.get('CHECKPOINT', 'CHECKPOINT_NAME')
     pos_template     = config.get('PROMPT_TEMPLATE', 'POS')
@@ -265,6 +283,7 @@ async def upscale_image(image: Image.Image, prompt: str,negative_prompt: str):
     cfg              = config.get('REF_SAMPLER_CFG', 'CFG')
     lora_name        = config.get('LORA', 'LORA_NAME')
     lora_strength    = config.get('LORA', 'STRENGTH')
+    vae_name         = config.get('VAE', 'VAE_NAME')
 
     print('----- Upscaling Image -----')
     # Modify the prompt dictionary
@@ -301,6 +320,9 @@ async def upscale_image(image: Image.Image, prompt: str,negative_prompt: str):
           workflow[node]["inputs"]["strength_model"] = lora_strength
           print('Lora: ' + workflow[node]["inputs"]["lora_name"])
           print('Lora strength: ' + workflow[node]["inputs"]["strength_model"])
+    if(vae_nodes[0] != ''):
+      for node in vae_nodes:
+          workflow[node]["inputs"]["vae_name"] = vae_name
 
     images = await generator.get_images(workflow)
     await generator.close()

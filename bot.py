@@ -7,7 +7,7 @@ import sys
 from PIL import Image
 from datetime import datetime
 from math import ceil, sqrt
-from configEdit import setup_config, get_config, replace_all, change_checkpoint_cfg, change_lora_cfg, get_models
+from configEdit import setup_config, set_size, set_checkpoint, set_lora, get_models
 
 # setting up the bot
 TOKEN, IMAGE_SOURCE = setup_config()
@@ -142,26 +142,23 @@ async def imagine(interaction: discord.Interaction, prompt: str, negative_prompt
     final_message = f"{interaction.user.mention} Summoned image."
     await interaction.channel.send(content=final_message, file=discord.File(fp=create_collage(images), filename='collage.png'), view=Buttons(prompt,negative_prompt,images))
 
+@tree.command(name="size", description="Change the image width")
+async def size(interaction: discord.Interaction, width: int, height: int):
+    set_size(width, height)
+    await interaction.response.send_message(f"{interaction.user.mention} Image size changed to: `{width} x {height}`")
+
 @tree.command(name="checkpoint", description="Change the selected checkpoint for image generation")
 @app_commands.choices(options = checkpoint_choices)
 async def choices(interaction:discord.Interaction,options:app_commands.Choice[str]):
-    print(options.value)
-    change_checkpoint_cfg(options.value)
+    set_checkpoint(options.value)
     await interaction.response.send_message(f"{interaction.user.mention} Checkpoint changed to: `{options.value}`")
 
 @tree.command(name="lora", description="Change the selected lora for image generation")
 @app_commands.choices(options = lora_choices)
 async def choices(interaction:discord.Interaction,options:app_commands.Choice[str]):
     print(options.value)
-    change_lora_cfg(options.value)
+    set_lora(options.value)
     await interaction.response.send_message(f"{interaction.user.mention} Lora changed to: `{options.value}`")
-
-@tree.command(name="restart", description="Restarts the bot")
-async def restart(interaction:discord.Interaction): 
-    embed=discord.Embed(title=":white_check_mark:",description="Successfully Restarted") 
-    await interaction.channel.send(embed=embed) 
-    os.system("clear") 
-    os.execv(sys.executable, ['python'] + sys.argv)
 
 # run the bot
 client.run(TOKEN)

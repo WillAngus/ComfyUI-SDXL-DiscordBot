@@ -2,9 +2,11 @@ import fileinput
 import sys
 import configparser
 import os
+import time
 
-def get_config():
-    config = configparser.ConfigParser()
+config = configparser.ConfigParser()
+
+def read_config():
     config.read('config.properties')
     return config
 
@@ -15,7 +17,7 @@ def setup_config():
     if not os.path.exists('./out'):
         os.makedirs('./out')
 
-    config = get_config()
+    config = read_config()
     return config['BOT']['TOKEN'], config['BOT']['SDXL_SOURCE']
 
 def generate_default_config():
@@ -27,18 +29,23 @@ def replace_all(file,searchExp,replaceExp):
             line = line.replace(searchExp,replaceExp)
         sys.stdout.write(line)
 
-def change_checkpoint_cfg(checkpoint_name):
-    current_ckpt_name = get_config().get('CHECKPOINT', 'CHECKPOINT_NAME')
+def set_size(width, height):
+    current_width = read_config().get('TEXT2IMG', 'WIDTH')
+    current_height = read_config().get('TEXT2IMG', 'HEIGHT')
+    replace_all('config.properties', 'WIDTH='+str(current_width), 'WIDTH='+str(width))
+    replace_all('config.properties', 'HEIGHT='+str(current_height), 'HEIGHT='+str(height))
 
-    replace_all('config.properties', current_ckpt_name, checkpoint_name)
+def set_checkpoint(checkpoint_name):
+    current_ckpt_name = read_config().get('CHECKPOINT', 'CHECKPOINT_NAME')
+    replace_all('config.properties', 'CHECKPOINT_NAME='+current_ckpt_name, 'CHECKPOINT_NAME='+checkpoint_name)
 
-def change_lora_cfg(lora_name):
-    current_lora_name = get_config().get('LORA', 'LORA_NAME')
-    replace_all('config.properties', current_lora_name, lora_name)
+def set_lora(lora_name):
+    current_lora_name = read_config().get('LORA', 'LORA_NAME')
+    replace_all('config.properties', 'LORA_NAME='+current_lora_name, 'LORA_NAME='+lora_name)
 
 def get_models(type):
     arr = []
-    dir = get_config().get('LOCAL', 'COMFY_DIR') + r'\models' + '\\' + type
+    dir = read_config().get('LOCAL', 'COMFY_DIR') + r'\models' + '\\' + type
     for file in os.listdir(dir):
         if file.endswith(".safetensors"):
             arr.append(os.path.join(file))

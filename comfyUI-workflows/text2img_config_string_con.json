@@ -107,7 +107,7 @@
     },
     "23": {
       "inputs": {
-        "vae_name": "sdxl.vae.safetensors"
+        "vae_name": ""
       },
       "class_type": "VAELoader"
     },

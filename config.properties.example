@@ -4,29 +4,33 @@ SDXL_SOURCE=LOCAL
 
 [LOCAL]
 SERVER_ADDRESS=127.0.0.1:8188
+COMFY_DIR=
 
 [PROMPT_TEMPLATE]
-POS=embedding:lazypos, masterpiece, best quality, amazing quality, very aesthetic, absurdres, ultra detailed face, ultra detailed eyes, 
-NEG=embedding:lazyneg, embedding:lazyhand, bad quality, worst quality, worst detail, sketch, censor, 
+POS=masterpiece, best quality, amazing quality, very aesthetic, absurdres, ultra detailed face, ultra detailed eyes, 
+NEG=bad quality, worst quality, worst detail, sketch, censor, 
 
 [BASE_SAMPLER_CFG]
 SAMPLER=euler_ancestral
 SCHEDULER=karras
-STEPS=15
+STEPS=17
 CFG=5
 
 [REF_SAMPLER_CFG]
-SAMPLER=dpmpp_2m_sde
+SAMPLER=euler
 SCHEDULER=karras
-STEPS=18
+STEPS=20
 CFG=6
 
 [CHECKPOINT]
-CHECKPOINT_NAME=
+CHECKPOINT_NAME=YOUR_CHECKPOINT_NAME_HERE.safetensors
 
 [LORA]
-LORA_NAME=
-STRENGTH=
+LORA_NAME=YOUR_LORA_NAME_HERE.safetensors
+STRENGTH=0.8
+
+[VAE]
+VAE_NAME=YOUR_VAE_NAME_HERE.safetensors
 
 [TEXT2IMG]
 CONFIG=comfyUI-workflows/text2img_config_string_con.json
@@ -36,6 +40,10 @@ NEG_PROMPT_NODES=28
 RAND_SEED_NODES=17
 SAMPLER_NODES=17
 LORA_NODES=22
+VAE_NODES=23
+LATENT_NODE=21
+WIDTH=1024
+HEIGHT=1317
 
 [IMG2IMG]
 CONFIG=comfyUI-workflows/img2img_config.json
@@ -46,6 +54,7 @@ RAND_SEED_NODES=4
 FILE_INPUT_NODES=5
 SAMPLER_NODES=4
 LORA_NODES=10
+VAE_NODES=9
 
 [UPSCALE]
 CONFIG=comfyUI-workflows/upscale_config.json
@@ -56,3 +65,4 @@ RAND_SEED_NODES=4
 FILE_INPUT_NODES=5
 SAMPLER_NODES=4
 LORA_NODES=11
+VAE_NODES=9
