@@ -100,6 +100,7 @@ async def generate_images(prompt: str,negative_prompt: str):
       
     generator = ImageGenerator()
     await generator.connect()
+    print('----- Generating Image -----')
     # Get nodes from config
     checkpoint_node  = config.get('TEXT2IMG', 'CHECKPOINT_NODE').split(',')
     prompt_nodes     = config.get('TEXT2IMG', 'PROMPT_NODES').split(',')
@@ -122,8 +123,6 @@ async def generate_images(prompt: str,negative_prompt: str):
     lora_name        = config.get('LORA', 'LORA_NAME')
     lora_strength    = config.get('LORA', 'STRENGTH')
     vae_name         = config.get('VAE', 'VAE_NAME')
-    
-    print('----- Generating Image -----')
     # Modify the prompt dictionary
     if(checkpoint_node[0] != ''):
       for node in checkpoint_node:
@@ -184,6 +183,7 @@ async def generate_alternatives(image: Image.Image, prompt: str, negative_prompt
       
     generator = ImageGenerator()
     await generator.connect()
+    print('----- Refining Image -----')
     # Get nodes from config
     checkpoint_node  = config.get('IMG2IMG', 'CHECKPOINT_NODE').split(',')
     prompt_nodes     = config.get('IMG2IMG', 'PROMPT_NODES').split(',')
@@ -205,7 +205,6 @@ async def generate_alternatives(image: Image.Image, prompt: str, negative_prompt
     lora_strength    = config.get('LORA', 'STRENGTH')
     vae_name         = config.get('VAE', 'VAE_NAME')
     
-    print('----- Refining Image -----')
     if(checkpoint_node[0] != ''):
       for node in checkpoint_node:
           workflow[node]["inputs"]["ckpt_name"] = ckpt_name
@@ -264,6 +263,7 @@ async def upscale_image(image: Image.Image, prompt: str,negative_prompt: str):
 
     generator = ImageGenerator()
     await generator.connect()
+    print('----- Upscaling Image -----')
     # Get nodes from config
     checkpoint_node  = config.get('UPSCALE', 'CHECKPOINT_NODE').split(',')
     prompt_nodes     = config.get('UPSCALE', 'PROMPT_NODES').split(',')
@@ -284,8 +284,6 @@ async def upscale_image(image: Image.Image, prompt: str,negative_prompt: str):
     lora_name        = config.get('LORA', 'LORA_NAME')
     lora_strength    = config.get('LORA', 'STRENGTH')
     vae_name         = config.get('VAE', 'VAE_NAME')
-
-    print('----- Upscaling Image -----')
     # Modify the prompt dictionary
     if(checkpoint_node[0] != ''):
       for node in checkpoint_node:
