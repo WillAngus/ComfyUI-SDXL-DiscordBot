@@ -11,7 +11,7 @@ import os
 import tempfile
 import requests
 
-# Read the configuration
+# Read config.properties
 config = configparser.ConfigParser()
 config.read('config.properties')
 server_address  = config['LOCAL']['SERVER_ADDRESS']
@@ -91,35 +91,30 @@ class ImageGenerator:
         if self.ws:
             await self.ws.close()
 
-async def generate_images(prompt: str, negative_prompt: str, seed: int):
+def populate_nodes(workflow, workflow_type: str, sampler_type: str, prompt: str, negative_prompt: str, seed: int, filename = None):
     # Read config
     config.read('config.properties')
-    # Open comfy workflow
-    with open(text2img_config, 'r') as file:
-      workflow = json.load(file)
-      
-    generator = ImageGenerator()
-    await generator.connect()
-    print('----- Generating Image -----')
-    # Get nodes from config
-    checkpoint_node  = config.get('TEXT2IMG', 'CHECKPOINT_NODE').split(',')
-    prompt_nodes     = config.get('TEXT2IMG', 'PROMPT_NODES').split(',')
-    neg_prompt_nodes = config.get('TEXT2IMG', 'NEG_PROMPT_NODES').split(',')
-    rand_seed_nodes  = config.get('TEXT2IMG', 'RAND_SEED_NODES').split(',') 
-    sampler_nodes    = config.get('TEXT2IMG', 'SAMPLER_NODES').split(',')
-    lora_nodes       = config.get('TEXT2IMG', 'LORA_NODES').split(',')
-    vae_nodes        = config.get('TEXT2IMG', 'VAE_NODES').split(',')
-    latent_node      = config.get('TEXT2IMG', 'LATENT_NODE').split(',')
-    width            = config.get('TEXT2IMG', 'WIDTH') 
-    height           = config.get('TEXT2IMG', 'HEIGHT') 
+    checkpoint_node  = config.get(workflow_type, 'CHECKPOINT_NODE').split(',')
+    prompt_nodes     = config.get(workflow_type, 'PROMPT_NODES').split(',')
+    neg_prompt_nodes = config.get(workflow_type, 'NEG_PROMPT_NODES').split(',')
+    rand_seed_nodes  = config.get(workflow_type, 'RAND_SEED_NODES').split(',') 
+    sampler_nodes    = config.get(workflow_type, 'SAMPLER_NODES').split(',')
+    lora_nodes       = config.get(workflow_type, 'LORA_NODES').split(',')
+    vae_nodes        = config.get(workflow_type, 'VAE_NODES').split(',')
+    if workflow_type == 'TEXT2IMG':
+        latent_node  = config.get(workflow_type, 'LATENT_NODE').split(',')
+        width        = config.get(workflow_type, 'WIDTH') 
+        height       = config.get(workflow_type, 'HEIGHT') 
+    if workflow_type != 'TEXT2IMG':
+        file_input_nodes = config.get(workflow_type, 'FILE_INPUT_NODES').split(',')
     # Get params from config
     ckpt_name        = config.get('CHECKPOINT', 'CHECKPOINT_NAME')
     pos_template     = config.get('PROMPT_TEMPLATE', 'POS')
     neg_template     = config.get('PROMPT_TEMPLATE', 'NEG')
-    sampler          = config.get('BASE_SAMPLER_CFG', 'SAMPLER')
-    scheduler        = config.get('BASE_SAMPLER_CFG', 'SCHEDULER')
-    steps            = config.get('BASE_SAMPLER_CFG', 'STEPS')
-    cfg              = config.get('BASE_SAMPLER_CFG', 'CFG')
+    sampler          = config.get(sampler_type, 'SAMPLER')
+    scheduler        = config.get(sampler_type, 'SCHEDULER')
+    steps            = config.get(sampler_type, 'STEPS')
+    cfg              = config.get(sampler_type, 'CFG')
     lora_name        = config.get('LORA', 'LORA_NAME')
     lora_strength    = config.get('LORA', 'STRENGTH')
     vae_name         = config.get('VAE', 'VAE_NAME')
@@ -161,10 +156,26 @@ async def generate_images(prompt: str, negative_prompt: str, seed: int):
     if(vae_nodes[0] != ''):
       for node in vae_nodes:
           workflow[node]["inputs"]["vae_name"] = vae_name
-    if(latent_node[0] != ''):
+    if(workflow_type == 'TEXT2IMG' and latent_node[0] != ''):
       for node in latent_node:
           workflow[node]["inputs"]["width"] = width
           workflow[node]["inputs"]["height"] = height
+    if(workflow_type != 'TEXT2IMG' and file_input_nodes[0] != ''):
+      for node in file_input_nodes:
+          workflow[node]["inputs"]["image"] = filename
+
+async def generate_images(prompt: str, negative_prompt: str, seed: int):
+    # Read config
+    config.read('config.properties')
+    # Open comfy workflow
+    with open(text2img_config, 'r') as file:
+      workflow = json.load(file)
+      
+    generator = ImageGenerator()
+    await generator.connect()
+    print('----- Generating Image -----')
+    # Populate nodes using config.properties
+    populate_nodes(workflow, 'TEXT2IMG', 'BASE_SAMPLER_CFG', prompt, negative_prompt, seed)
 
     images = await generator.get_images(workflow)
     await generator.close()
@@ -188,67 +199,33 @@ async def generate_alternatives(image: Image.Image, prompt: str, negative_prompt
     generator = ImageGenerator()
     await generator.connect()
     print('----- Refining Image -----')
-    # Get nodes from config
-    checkpoint_node  = config.get('IMG2IMG', 'CHECKPOINT_NODE').split(',')
-    prompt_nodes     = config.get('IMG2IMG', 'PROMPT_NODES').split(',')
-    neg_prompt_nodes = config.get('IMG2IMG', 'NEG_PROMPT_NODES').split(',')
-    rand_seed_nodes  = config.get('IMG2IMG', 'RAND_SEED_NODES').split(',') 
-    file_input_nodes = config.get('IMG2IMG', 'FILE_INPUT_NODES').split(',')
-    sampler_nodes    = config.get('IMG2IMG', 'SAMPLER_NODES').split(',')
-    lora_nodes       = config.get('IMG2IMG', 'LORA_NODES').split(',')
-    vae_nodes        = config.get('IMG2IMG', 'VAE_NODES').split(',')
-    # Get params from config
-    ckpt_name        = config.get('CHECKPOINT', 'CHECKPOINT_NAME')
-    pos_template     = config.get('PROMPT_TEMPLATE', 'POS')
-    neg_template     = config.get('PROMPT_TEMPLATE', 'NEG')
-    sampler          = config.get('BASE_SAMPLER_CFG', 'SAMPLER')
-    scheduler        = config.get('BASE_SAMPLER_CFG', 'SCHEDULER')
-    steps            = config.get('BASE_SAMPLER_CFG', 'STEPS')
-    cfg              = config.get('BASE_SAMPLER_CFG', 'CFG')
-    lora_name        = config.get('LORA', 'LORA_NAME')
-    lora_strength    = config.get('LORA', 'STRENGTH')
-    vae_name         = config.get('VAE', 'VAE_NAME')
-    
-    if(checkpoint_node[0] != ''):
-      for node in checkpoint_node:
-          workflow[node]["inputs"]["ckpt_name"] = ckpt_name
-          print('Checkpoint: ' + workflow[node]["inputs"]["ckpt_name"])
-    if(prompt != None and prompt_nodes[0] != ''):
-      for node in prompt_nodes:
-          workflow[node]["inputs"]["text"] = pos_template + prompt
-          print('Positive prompt: ' + workflow[node]["inputs"]["text"])
-    if(neg_prompt_nodes[0] != ''):
-      for node in neg_prompt_nodes:
-          if (negative_prompt == None):
-                workflow[node]["inputs"]["text"] = neg_template
-          else:
-                workflow[node]["inputs"]["text"] = neg_template + negative_prompt
-          print('Negative prompt: ' + workflow[node]["inputs"]["text"])
-    if(rand_seed_nodes[0] != ''):
-      for node in rand_seed_nodes:
-          if(seed != None):
-            workflow[node]["inputs"]["seed"] = seed
-          else:
-            workflow[node]["inputs"]["seed"] = random.randint(0,999999999999999)
-          print('Seed: ' + str(workflow[node]["inputs"]["seed"]))
-    if(file_input_nodes[0] != ''):
-      for node in file_input_nodes:
-          workflow[node]["inputs"]["image"] = filename
-    if(sampler_nodes[0] != ''):
-      for node in sampler_nodes:
-          workflow[node]["inputs"]["sampler_name"] = sampler
-          workflow[node]["inputs"]["scheduler"] = scheduler
-          workflow[node]["inputs"]["steps"] = steps
-          workflow[node]["inputs"]["cfg"] = cfg
-    if(lora_nodes[0] != ''):
-      for node in lora_nodes:
-          workflow[node]["inputs"]["lora_name"] = lora_name
-          workflow[node]["inputs"]["strength_model"] = lora_strength
-          print('Lora: ' + workflow[node]["inputs"]["lora_name"])
-          print('Lora strength: ' + workflow[node]["inputs"]["strength_model"])
-    if(vae_nodes[0] != ''):
-      for node in vae_nodes:
-          workflow[node]["inputs"]["vae_name"] = vae_name
+    # Populate nodes using config.properties
+    populate_nodes(workflow, 'IMG2IMG', 'BASE_SAMPLER_CFG', prompt, negative_prompt, seed, filename)
+
+    images = await generator.get_images(workflow)
+    await generator.close()
+
+    return images
+
+async def generate_alternatives(image: Image.Image, prompt: str, negative_prompt: str, seed: int):
+    # Read config
+    config.read('config.properties')
+    # Save temp png
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
+      image.save(temp_file, format="PNG")
+      temp_filepath = temp_file.name
+
+    # Upload the temporary file using the upload_image method
+    response_data = upload_image(temp_filepath)
+    filename = response_data['name']
+    with open(img2img_config, 'r') as file:
+      workflow = json.load(file)
+      
+    generator = ImageGenerator()
+    await generator.connect()
+    print('----- Refining Image -----')
+    # Populate nodes using config.properties
+    populate_nodes(workflow, 'IMG2IMG', 'BASE_SAMPLER_CFG', prompt, negative_prompt, seed, filename)
 
     images = await generator.get_images(workflow)
     await generator.close()
@@ -263,9 +240,6 @@ async def upscale_image(image: Image.Image, prompt: str, negative_prompt: str, s
       image.save(temp_file, format="PNG")
       temp_filepath = temp_file.name
 
-    print(prompt)
-    print(negative_prompt)
-
     # Upload the temporary file using the upload_image method
     response_data = upload_image(temp_filepath)
     filename = response_data['name']
@@ -275,67 +249,8 @@ async def upscale_image(image: Image.Image, prompt: str, negative_prompt: str, s
     generator = ImageGenerator()
     await generator.connect()
     print('----- Upscaling Image -----')
-    # Get nodes from config
-    checkpoint_node  = config.get('UPSCALE', 'CHECKPOINT_NODE').split(',')
-    prompt_nodes     = config.get('UPSCALE', 'PROMPT_NODES').split(',')
-    neg_prompt_nodes = config.get('UPSCALE', 'NEG_PROMPT_NODES').split(',')
-    rand_seed_nodes  = config.get('UPSCALE', 'RAND_SEED_NODES').split(',') 
-    file_input_nodes = config.get('UPSCALE', 'FILE_INPUT_NODES').split(',') 
-    sampler_nodes    = config.get('UPSCALE', 'SAMPLER_NODES').split(',')
-    lora_nodes       = config.get('UPSCALE', 'LORA_NODES').split(',')
-    vae_nodes        = config.get('UPSCALE', 'VAE_NODES').split(',')
-    # Get params from config
-    ckpt_name        = config.get('CHECKPOINT', 'CHECKPOINT_NAME')
-    pos_template     = config.get('PROMPT_TEMPLATE', 'POS')
-    neg_template     = config.get('PROMPT_TEMPLATE', 'NEG')
-    sampler          = config.get('REF_SAMPLER_CFG', 'SAMPLER')
-    scheduler        = config.get('REF_SAMPLER_CFG', 'SCHEDULER')
-    steps            = config.get('REF_SAMPLER_CFG', 'STEPS')
-    cfg              = config.get('REF_SAMPLER_CFG', 'CFG')
-    lora_name        = config.get('LORA', 'LORA_NAME')
-    lora_strength    = config.get('LORA', 'STRENGTH')
-    vae_name         = config.get('VAE', 'VAE_NAME')
-    # Modify the prompt dictionary
-    if(checkpoint_node[0] != ''):
-      for node in checkpoint_node:
-          workflow[node]["inputs"]["ckpt_name"] = ckpt_name
-          print('Checkpoint: ' + workflow[node]["inputs"]["ckpt_name"])
-    if(prompt != None and prompt_nodes[0] != ''):
-      for node in prompt_nodes:
-          workflow[node]["inputs"]["text"] = pos_template + prompt
-          print('Positive prompt: ' + workflow[node]["inputs"]["text"])
-    if(neg_prompt_nodes[0] != ''):
-      for node in neg_prompt_nodes:
-          if (negative_prompt == None):
-                workflow[node]["inputs"]["text"] = neg_template
-          else:
-                workflow[node]["inputs"]["text"] = neg_template + negative_prompt
-          print('Negative prompt: ' + workflow[node]["inputs"]["text"])
-    if(rand_seed_nodes[0] != ''):
-      for node in rand_seed_nodes:
-          if(seed != None):
-            workflow[node]["inputs"]["seed"] = seed
-          else:
-            workflow[node]["inputs"]["seed"] = random.randint(0,999999999999999)
-          print('Seed: ' + str(workflow[node]["inputs"]["seed"]))
-    if(file_input_nodes[0] != ''):
-      for node in file_input_nodes:
-          workflow[node]["inputs"]["image"] = filename
-    if(sampler_nodes[0] != ''):
-      for node in sampler_nodes:
-          workflow[node]["inputs"]["sampler_name"] = sampler
-          workflow[node]["inputs"]["scheduler"] = scheduler
-          workflow[node]["inputs"]["steps"] = steps
-          workflow[node]["inputs"]["cfg"] = cfg
-    if(lora_nodes[0] != ''):
-      for node in lora_nodes:
-          workflow[node]["inputs"]["lora_name"] = lora_name
-          workflow[node]["inputs"]["strength_model"] = lora_strength
-          print('Lora: ' + workflow[node]["inputs"]["lora_name"])
-          print('Lora strength: ' + workflow[node]["inputs"]["strength_model"])
-    if(vae_nodes[0] != ''):
-      for node in vae_nodes:
-          workflow[node]["inputs"]["vae_name"] = vae_name
+    # Populate nodes using config.properties
+    populate_nodes(workflow, 'UPSCALE', 'REF_SAMPLER_CFG', prompt, negative_prompt, seed, filename)
 
     images = await generator.get_images(workflow)
     await generator.close()
