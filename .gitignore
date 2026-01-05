@@ -6,7 +6,6 @@ config.properties
 *.spec
 ComfyUi_windows_portable/
 bot.exe
-start.bat
 tokens.txt
 comfyUI-workflows/usr
 .venv
